@@ -3,6 +3,36 @@ import UserModel from "../models/user.model.js"
 import { generateGeminiResponse } from "../services/gemini.services.js"
 import { buildPrompt } from "../utils/promptBuilder.js"
 
+// must match the dropdown in TopicForm.jsx
+const ALLOWED_LANGUAGES = [
+    "English", "Hindi", "Bengali", "Marathi", "Gujarati", "Tamil", "Telugu",
+    "Kannada", "Malayalam", "Punjabi", "Urdu", "Spanish", "French"
+]
+
+// Gemini sometimes returns answerIndex as a string ("2") or adds bad entries.
+// Clean flashcards + quiz so the frontend never receives broken data.
+const normalizeAiResponse = (ai) => {
+    if (!ai || typeof ai !== "object") return ai
+
+    ai.flashcards = (Array.isArray(ai.flashcards) ? ai.flashcards : []).filter(
+        (c) => c && typeof c.front === "string" && typeof c.back === "string"
+    )
+
+    ai.quiz = (Array.isArray(ai.quiz) ? ai.quiz : [])
+        .map((q) => ({ ...q, answerIndex: Number(q?.answerIndex) }))
+        .filter(
+            (q) =>
+                typeof q.question === "string" &&
+                Array.isArray(q.options) &&
+                q.options.length >= 2 &&
+                Number.isInteger(q.answerIndex) &&
+                q.answerIndex >= 0 &&
+                q.answerIndex < q.options.length
+        )
+
+    return ai
+}
+
 export const generateNotes = async (req, res) => {
     try {
         const {
@@ -11,11 +41,17 @@ export const generateNotes = async (req, res) => {
             examType,
             revisionMode = false,
             includeDiagram = false,
-            includeChart = false
+            includeChart = false,
+            language = "English"
         } = req.body;
-        if (!topic) {
+
+        if (!topic || typeof topic !== "string" || !topic.trim()) {
             return res.status(400).json({ message: "Topic is required" })
         }
+
+        // only accept known languages, otherwise fall back to English
+        const safeLanguage = ALLOWED_LANGUAGES.includes(language) ? language : "English"
+
         const user = await UserModel.findById(req.userId)
         if (!user) {
             return res.status(400).json({ message: "user is not found" })
@@ -35,12 +71,13 @@ export const generateNotes = async (req, res) => {
             examType,
             revisionMode,
             includeDiagram,
-            includeChart
+            includeChart,
+            language: safeLanguage
         })
 
 
-        const aiResponse = await generateGeminiResponse(prompt)
-   
+        const aiResponse = normalizeAiResponse(await generateGeminiResponse(prompt))
+
 
         const notes = await Notes.create({
             user: user._id,
@@ -50,6 +87,7 @@ export const generateNotes = async (req, res) => {
             revisionMode,
             includeDiagram,
             includeChart,
+            language: safeLanguage,
             content: aiResponse
         })
 

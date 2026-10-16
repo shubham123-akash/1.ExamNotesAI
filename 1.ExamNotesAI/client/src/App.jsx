@@ -9,6 +9,7 @@ import Notes from './pages/Notes'
 import Pricing from './pages/Pricing'
 import PaymentSuccess from './pages/PaymentSuccess'
 import PaymentFailed from './pages/PaymentFailed'
+import SharedNote from './pages/SharedNote'
 export const serverUrl = "http://localhost:8000"
 
 function App() {
@@ -27,6 +28,7 @@ function App() {
       <Route path='/notes' element={userData? <Notes/> : <Navigate to="/auth" replace/>}/>
       <Route path='/pricing' element={userData? <Pricing/> : <Navigate to="/auth" replace/>}/>
 
+      <Route path='/shared/:shareId' element={<SharedNote/>}/>
       <Route path='/payment-success' element={<PaymentSuccess/>}/>
       <Route path='/payment-failed' element={<PaymentFailed/>}/>
     </Routes>

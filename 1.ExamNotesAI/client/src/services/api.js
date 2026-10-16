@@ -45,3 +45,30 @@ export const downloadPdf = async (result) => {
 
     }
 }
+
+// ---------- notes management ----------
+
+export const updateNote = async (id, updates) => {
+    const res = await axios.put(serverUrl + `/api/notes/${id}`, updates, { withCredentials: true })
+    return res.data
+}
+
+export const deleteNote = async (id) => {
+    const res = await axios.delete(serverUrl + `/api/notes/${id}`, { withCredentials: true })
+    return res.data
+}
+
+export const setNoteShare = async (id, isPublic) => {
+    const res = await axios.put(serverUrl + `/api/notes/${id}/share`, { isPublic }, { withCredentials: true })
+    return res.data
+}
+
+export const fetchSharedNote = async (shareId) => {
+    const res = await axios.get(serverUrl + `/api/notes/shared/${shareId}`)
+    return res.data
+}
+
+export const saveQuizScore = async (id, score, total) => {
+    const res = await axios.post(serverUrl + `/api/notes/${id}/quiz-score`, { score, total }, { withCredentials: true })
+    return res.data
+}

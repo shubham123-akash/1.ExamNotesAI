@@ -5,16 +5,18 @@ import { useSelector } from 'react-redux'
 import TopicForm from '../components/TopicForm'
 import Sidebar from '../components/Sidebar'
 import FinalResult from '../components/FinalResult'
+import ThemeToggle from '../components/ThemeToggle'
 function Notes() {
   const navigate = useNavigate()
   const { userData } = useSelector((state) => state.user)
   const credits = userData.credits
   const [loading,setLoading]= useState(false)
   const [result , setResult] = useState(null)
+  const [noteId, setNoteId] = useState(null)
   const [error,setError] = useState("")
 
   return (
-    <div className='min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 px-6 py-8'>
+    <div className='min-h-screen bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-950 dark:to-gray-900 px-6 py-8'>
       <motion.header
         initial={{ opacity: 0, y: -15 }}
         animate={{ opacity: 1, y: 0 }}
@@ -34,6 +36,7 @@ function Notes() {
           <p className='text-sm text-gray-300 mt-1'>AI-powered exam-oriented notes & revision</p></div>
 
         <div className='flex items-center gap-4 flex-wrap'>
+          <ThemeToggle />
           <button className='flex items-center gap-2 
     px-4 py-2 rounded-full
     bg-white/10
@@ -72,7 +75,13 @@ function Notes() {
 
       <motion.div 
           className="mb-12">
-        <TopicForm loading={loading} setResult={setResult} setLoading={setLoading} setError={setError}/>
+        <TopicForm
+          loading={loading}
+          setResult={setResult}
+          setNoteId={setNoteId}
+          setLoading={setLoading}
+          setError={setError}
+        />
       </motion.div>
 
 
@@ -80,14 +89,14 @@ function Notes() {
           <motion.div
             animate={{ opacity: [0.4, 1, 0.4] }}
             transition={{ repeat: Infinity, duration: 1.2 }}
-            className="text-center text-black font-medium mb-6"
+            className="text-center text-black dark:text-gray-100 font-medium mb-6"
           >
             Generating exam-focused notes…
           </motion.div>
         )}
 
         {error && (
-          <div className="mb-6 text-center text-red-600 font-medium">
+          <div className="mb-6 text-center text-red-600 dark:text-red-400 font-medium">
             {error}
           </div>
         )}
@@ -98,8 +107,11 @@ function Notes() {
               rounded-2xl
               flex flex-col items-center justify-center
               bg-white/60 backdrop-blur-lg
+              dark:bg-gray-800/60
               border border-dashed border-gray-300
+              dark:border-gray-600
               text-gray-500
+              dark:text-gray-400
               shadow-inner
             ">
                <span className="text-4xl mb-3">📘</span>
@@ -126,10 +138,10 @@ function Notes() {
 
         <div className='lg:col-span-3
         rounded-2xl
-        bg-white
+        bg-white dark:bg-gray-900
         shadow-[0_15px_40px_rgba(0,0,0,0.15)]
         p-6'>
-          <FinalResult result={result}/>
+          <FinalResult key={noteId || "unsaved"} result={result} noteId={noteId}/>
 
         </div>
 

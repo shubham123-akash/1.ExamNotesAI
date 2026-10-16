@@ -6,6 +6,12 @@ import { BrowserRouter } from 'react-router-dom'
 import { Provider } from 'react-redux'
 import store from './redux/store.js'
 
+try {
+  if (localStorage.getItem('theme') === 'dark') {
+    document.documentElement.classList.add('dark')
+  }
+} catch { /* storage blocked - stay in light mode */ }
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>

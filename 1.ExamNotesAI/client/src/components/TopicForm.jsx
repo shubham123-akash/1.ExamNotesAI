@@ -3,10 +3,18 @@ import { motion } from "motion/react"
 import { generateNotes } from '../services/api';
 import { useDispatch } from 'react-redux';
 import { updateCredits } from '../redux/userSlice';
-function TopicForm({ setResult, setLoading, loading, setError }) {
+
+// must match ALLOWED_LANGUAGES in generate.controller.js
+const LANGUAGES = [
+  "English", "Hindi", "Bengali", "Marathi", "Gujarati", "Tamil", "Telugu",
+  "Kannada", "Malayalam", "Punjabi", "Urdu", "Spanish", "French"
+];
+
+function TopicForm({ setResult, setNoteId, setLoading, loading, setError }) {
   const [topic, setTopic] = useState("");
   const [classLevel, setClassLevel] = useState("");
   const [examType, setExamType] = useState("");
+  const [language, setLanguage] = useState("English");
   const [revisionMode, setRevisionMode] = useState(false);
   const [includeDiagram, setIncludeDiagram] = useState(false);
   const [includeChart, setIncludeChart] = useState(false);
@@ -22,6 +30,7 @@ function TopicForm({ setResult, setLoading, loading, setError }) {
     setError("")
     setLoading(true)
     setResult(null)
+    if (setNoteId) setNoteId(null)
     try {
 
       const result = await generateNotes({topic,
@@ -29,8 +38,10 @@ function TopicForm({ setResult, setLoading, loading, setError }) {
         examType,
         revisionMode,
         includeDiagram,
-        includeChart})
+        includeChart,
+        language})
         setResult(result.data)
+        if (setNoteId) setNoteId(result.noteId || null)
         setLoading(false)
         setClassLevel("")
         setTopic("")
@@ -38,6 +49,7 @@ function TopicForm({ setResult, setLoading, loading, setError }) {
         setIncludeChart(false)
         setRevisionMode(false)
         setIncludeDiagram(false)
+        // language is kept, so the next note uses the same language
 
         if(typeof result.creditsLeft === "number"){
           dispatch(updateCredits(result.creditsLeft));
@@ -132,6 +144,26 @@ function TopicForm({ setResult, setLoading, loading, setError }) {
         onChange={(e) => setExamType(e.target.value)}
         value={examType}
       />
+
+      <div className='flex items-center gap-3'>
+        <label htmlFor='language' className='text-sm text-gray-300 whitespace-nowrap'>
+          🌐 Notes language
+        </label>
+        <select
+          id='language'
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          className='flex-1 p-3 rounded-xl
+            bg-white/10 backdrop-blur-lg
+            border border-white/20
+            text-white
+            focus:outline-none focus:ring-2 focus:ring-white/30'
+        >
+          {LANGUAGES.map((l) => (
+            <option key={l} value={l} className='text-black'>{l}</option>
+          ))}
+        </select>
+      </div>
 
       <div className='flex flex-col md:flex-row gap-6'>
         <Toggle label="Exam Revision Mode" checked={revisionMode} onChange={() => setRevisionMode(!revisionMode)} />
